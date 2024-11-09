@@ -1,7 +1,60 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+    if (Notification.permission === "default") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                console.log("Notification permission granted.");
+            }
+        });
+    }
+});
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("/service-worker.js").then(registration => {
+        console.log("Service Worker registered with scope:", registration.scope);
+    }).catch(error => {
+        console.error("Service Worker registration failed:", error);
+    });
+}
+function scheduleDailyNotification() {
+    const now = new Date();
+    const sevenPmGMT = new Date();
+    sevenPmGMT.setUTCHours(19, 0, 0, 0);  // 7 PM GMT
+
+    if (now > sevenPmGMT) {
+        // If it's past 7 PM GMT today, set it for tomorrow
+        sevenPmGMT.setDate(now.getUTCDate() + 1);
+    }
+
+    const timeUntil7PM = sevenPmGMT - now;
+
+    setTimeout(() => {
+        showNotification();
+        // Repeat every 24 hours after the first notification
+        setInterval(showNotification, 10000);
+    }, timeUntil7PM);
+}
+
+function showNotification() {
+    if (Notification.permission === "granted") {
+        navigator.serviceWorker.getRegistration().then(registration => {
+            if (registration) {
+                registration.showNotification("Daily Reminder", {
+                    body: "This is a reminder to add tasks to your to-do list.",
+                    icon: "/static/images/notification-icon.png",
+                    tag: "todo-reminder",
+                });
+            }
+        });
+    }
+}
+
+scheduleDailyNotification();
+    </script>
     <meta charset="utf-8">
     <meta name="description"
         content="This is to do list implemented using Django by Dennis Ivy who is a full stack web developer.">
@@ -59,7 +112,7 @@
             color: #fff;
             padding: 10px;
             border-radius: 5px 5px 0 0;
-            background: linear-gradient(90deg, #EEA390 0%, #EB796F 43%, #EB796F 100%);
+            background: linear-gradient(90deg, #24bdff 0%, #21e1ca 43%, #1362d0 100%);
         }
 
         .header-bar a {
@@ -194,6 +247,8 @@
 
         .card-body {
             padding: 20px;
+
+
         }
     </style>
 </head>
